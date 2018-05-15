@@ -43,10 +43,10 @@ nick.newTab().then(async (tab) => {
       avatar: _.get(userEdge, 'profile_pic_url_hd', null),
     };
 
-    callback(null, { owner: account, mediaEdges });
+    callback(null, { account, mediaEdges });
   });
 })
-.then(async ({ owner, mediaEdges }) => {
+.then(async ({ account, mediaEdges }) => {
   console.log('Performing data mapping...');
 
   const medias = [];
@@ -64,14 +64,16 @@ nick.newTab().then(async (tab) => {
       imageUrl: _.get(mediaEdge, 'display_url', null),
       videoUrl: _.get(mediaEdge, 'video_url', null),
       createdAtTime: _.get(mediaEdge, 'taken_at_timestamp', null),
-      owner,
+      owner: { ...account },
       isSponsored: Sponsored.isSponsoredMedia(mediaEdge),
     };
     medias.push(mediaData);
   });
 
+  account.medias = medias;
+
   console.log('Data mapping complete!');
-  await buster.setResultObject(medias);
+  await buster.setResultObject(account);
 })
 .then(() => {
   console.log("Job done!");
