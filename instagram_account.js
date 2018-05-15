@@ -16,7 +16,7 @@ nick.newTab().then(async (tab) => {
   const arg = buster.argument;
   const { handle } = arg;
   await tab.open(`https://www.instagram.com/${handle}`);
-  await tab.untilVisible("#react-root > section > main > article > header > section h1"); // Make sure we have loaded the page
+  await tab.untilVisible("#react-root > section > main header:first-of-type section:first-of-type h1:first-of-type"); // Make sure we have loaded the page
   await tab.inject("../injectables/jquery-3.0.0.min.js"); // We're going to use jQuery to scrape
   await tab.inject("../injectables/lodash-full-4.13.1.min.js"); // We're going to use lodash to extract certain data from graphql structure
   const account = await tab.evaluate((arg, callback) => {
