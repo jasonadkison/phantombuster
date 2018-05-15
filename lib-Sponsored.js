@@ -1,3 +1,4 @@
+// This module is required by all of our media fetching agents to determine whether media is sponsored or not.
 const _ = require('lodash');
 
 module.exports = {
