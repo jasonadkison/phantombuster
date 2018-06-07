@@ -1,4 +1,3 @@
-// This module is required by all of our media fetching agents to determine whether media is sponsored or not.
 const _ = require('lodash');
 
 module.exports = {
@@ -17,7 +16,11 @@ module.exports = {
     
     if (_.isArray(hashtags)) {
       const formattedHashtags = hashtags.map(hashtag => hashtag.toLowerCase());
-      if (_.includes(formattedHashtags, '#ad') || _.includes(formattedHashtags, '#sponsored')) {
+      if (
+        _.includes(formattedHashtags, '#ad') ||
+        _.includes(formattedHashtags, '#sponsored') ||
+        _.includes(formattedHashtags, '#partner')
+      ) {
         return true;
       }
     }
