@@ -13,7 +13,7 @@ module.exports = {
 
     const caption = _.get(mediaEdge, 'edge_media_to_caption.edges[0].node.text', '');
     const hashtags = caption.match(/#[a-z]+/gi);
-    
+
     if (_.isArray(hashtags)) {
       const formattedHashtags = hashtags.map(hashtag => hashtag.toLowerCase());
       if (
