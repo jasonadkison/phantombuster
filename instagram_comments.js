@@ -116,7 +116,6 @@
                    .reverse()
                    .value();
     console.log('Data mapping complete!');
-    // await buster.setResultObject(data);
     return data;
   })
   .then(async (data) => {
@@ -127,7 +126,24 @@
     const path = `comments/${id}.json`;
     const mime = 'application/json';
     const url = await buster.saveText(text, path, mime);
-    console.log('Saved data to file', url);
+    const agentObject = await buster.getAgentObject();
+
+    const result = {
+      mediaShortcode: id,
+      commentsUrl: url,
+      commentsSize: data.length,
+      agentId: buster.agentId,
+      containerId: buster.containerId,
+    };
+    return result;
+  })
+  .then(async (result) => {
+    /*{
+    "url": "https://phantombuster.s3.amazonaws.com/Br7nF5sLuTc/c8wATtZQxsP1mE3zLvdfSQ/comments/Bl6h-pRB1MX.json",
+    "id": "Bl6h-pRB1MX",
+    "size": 159
+    }*/
+    await buster.setResultObject(result);
   })
   .then(() => {
     console.log("Job done!");
