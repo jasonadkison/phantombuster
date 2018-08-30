@@ -65,11 +65,22 @@ nick.newTab().then(async (tab) => {
       const nextLink = $('.ThreadedConversation-showMoreThreadsButton');
       if (nextLink.length) {
         nextLink.click();
+        done(null);
       } else {
+        // Trigger the next page by scrolling to the bottom.
+        // Here we are jumping back to the top first because sometimes doing a direct jump to
+        // the bottom is not triggering twitters javascript to fetch the next page.
         const targetHeight = $('div[role="main"]').height();
-        $('#permalink-overlay')[0].scrollTo(0,  targetHeight);
+        setTimeout(() => {
+          $('#permalink-overlay')[0].scrollTo(0, 1);
+        }, 0);
+        setTimeout(() => {
+          $('#permalink-overlay')[0].scrollTo(0, targetHeight);
+        }, 100);
+        setTimeout(() => {
+          done(null);
+        }, 200);
       }
-      done(null);
     } catch(e) {
       done('Something went triggering the next page');
     }
