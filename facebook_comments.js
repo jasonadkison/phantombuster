@@ -27,12 +27,12 @@ nick.newTab().then(async (tab) => {
   const triggerComments = (arg, done) => {
     const wrapper = $('.userContentWrapper');
     const blingLink = $('[data-comment-prelude-ref="action_link_bling"]:first span:contains(Comments)', wrapper);
-    const moreLink = $('.UFIPagerLink:contains("more comments")', wrapper);
+    const pageLink = $('.UFIPagerLink:contains("more comments"), .UFIPagerLink:contains("previous comments")', wrapper);
     const event = new Event('click', { bubbles: true });
     event.simulated = true;
 
-    if (moreLink.length) {
-      moreLink[0].dispatchEvent(event);
+    if (pageLink.length) {
+      pageLink[0].dispatchEvent(event);
     } else {
       blingLink[0].dispatchEvent(event);
     }
@@ -121,7 +121,7 @@ nick.newTab().then(async (tab) => {
 
   const checkHasNextPage = (arg, done) => {
     const wrapper = $('.userContentWrapper');
-    const moreLink = $('.UFIPagerLink:contains("more comments")', wrapper);
+    const moreLink = $('.UFIPagerLink:contains("more comments"), .UFIPagerLink:contains("previous comments")', wrapper);
     done(null, moreLink.length > 0);
   };
 
