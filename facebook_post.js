@@ -24,19 +24,19 @@ nick.newTab().then(async (tab) => {
 
   //await tab.screenshot("screenshot.png") // Why not take a screenshot while we're at it?
 
-  return await tab.evaluate(({ url }, done) => {
+   // determines the type of post by analyzing the url
+  const postType = (() => {
+    if (/^https?:\/\/(www\.)?facebook\.com\/(photo(\.php|s)|permalink\.php|media|questions|notes|[^\/]+\/(activity|posts|photos))[\/?].*$/gm.test(url)) {
+      return 'post';
+    }
+    if (/^https?:\/\/(www\.)?facebook\.com\/([^\/?].+\/)?video(s|\.php)[\/?].*$/gm.test(url)) {
+      return 'video';
+    }
+  })();
 
-    // determines the type of post by analyzing the url
-    const postType = (() => {
-      if (/^https?:\/\/(www\.)?facebook\.com\/(photo(\.php|s)|permalink\.php|media|questions|notes|[^\/]+\/(activity|posts|photos))[\/?].*$/gm.test(url)) {
-        return 'post';
-      }
-      if (/^https?:\/\/(www\.)?facebook\.com\/([^\/?].+\/)?video(s|\.php)[\/?].*$/gm.test(url)) {
-        return 'video';
-      }
-    })();
+  if (!postType) return done('Could not determine the type of post');
 
-    if (!postType) return done('Could not determine the type of post');
+  const data = await tab.evaluate(({ postType, url }, done) => {
 
     const wrapper = $('.userContentWrapper:first');
     if (!wrapper.length) return done('Could not find wrapper element');
@@ -126,8 +126,42 @@ nick.newTab().then(async (tab) => {
       return { ...data, ...mediaData };
     })();
 
-    done(null, { post, stats });
-  }, { url });
+    done(null, { postType, post, stats });
+  }, { postType, url });
+
+  if (postType === 'video') {
+    console.log('trigger video modal');
+
+    await tab.evaluate((args, done) => {
+      const timestamp = $('.userContentWrapper .timestampContent');
+      if (!timestamp.length) return done('Could not find the timestamp');
+      const event = new Event('click', { bubbles: true });
+      event.simulated = true;
+      timestamp[0].dispatchEvent(event);
+      done(null);
+    });
+
+    await tab.waitUntilVisible('#fbPhotoSnowliftViews');
+
+    const totalViews = await tab.evaluate((args, done) => {
+      const viewsText = $('#fbPhotoSnowliftViews').text();
+      if (!viewsText) return done('Could not select the views text');
+
+      // use regex to extract the individual stat from the text
+      const pattern = /((\d{1,3}(,\d{3})*)+\s\w+)/g;
+      const match = pattern.exec(viewsText)
+
+      if (!match) return done('Could not extract views count from text');
+
+      done(null, match[2]);
+    });
+
+    if (totalViews) {
+      data.stats.views = totalViews;
+    }
+  }
+
+  return data;
 })
 .then(async data => {
   const { stats, post } = data;
