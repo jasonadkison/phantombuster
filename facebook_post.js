@@ -114,11 +114,18 @@ nick.newTab().then(async (tab) => {
     });
 
     const post = (() => {
+      const id = $('input[name="ft_ent_identifier"]', footer).attr('value');
+      const body = $(content.html().replace(/<(br)\s*?\/?>/g, '\n').replace('<br />', '\n')).text();
+      const timestamp = $('abbr[data-utime]', header).data('utime');
+
+      if (!id) return done('Could not get post id');
+      if (!timestamp) return done('Could not get post timestamp');
+
       const data = {
-        id: $('input[name="ft_ent_identifier"]', footer).attr('value'),
+        id,
         url,
-        body: $(content.html().replace(/<(br)\s*?\/?>/g, '\n').replace('<br />', '\n')).text(),
-        timestamp: $('abbr.timestamp', header).data('utime')
+        body,
+        timestamp,
       };
 
       const mediaData = postType === 'post' ? getPostMediaData() : getVideoMediaData();
