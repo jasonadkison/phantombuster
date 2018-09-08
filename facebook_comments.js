@@ -15,7 +15,9 @@ const _ = require("lodash");
 // }
 
 nick.newTab().then(async (tab) => {
-  const { url } = buster.argument;
+  const { url, limit } = buster.argument;
+  const hardCap = limit ? limit : 1000;
+
   //const url = "https://www.facebook.com/DonaldTrump/posts/10161487534090725";
   //const url = "https://www.facebook.com/DonaldTrump/videos/vb.153080620724/10159664271045725/?type=2&theater";
   //const url = "https://www.facebook.com/DonaldTrump/photos/a.10156483516640725/10161489089290725/?type=3&permPage=1"
@@ -146,7 +148,7 @@ nick.newTab().then(async (tab) => {
     //await tab.screenshot(`page-${pageNum}-before-scrape.jpg`);
     const results = await tab.evaluate(scrapeComments);
     //await tab.screenshot(`page-${pageNum}-after-scrape.jpg`);
-    console.log(results.length, 'result(s) scraped from page', pageNum);
+    console.log(`Page ${pageNum}: ${results.length} comments(s) scraped from DOM`);
     return results;
   };
 
@@ -176,21 +178,45 @@ nick.newTab().then(async (tab) => {
   const results = [];
   const tracked = {};
   const addResult = (result) => {
+    if (results.length >= hardCap) return false;
     if (tracked[result.id]) return false;
     tracked[result.id] = true;
     results.push(result);
   }
-  const addResults = (results) => results.forEach(result => addResult(result));
+  const addResults = (page, newResults) => {
+    const duplicateResults = _.remove(newResults, (result) => tracked[result.id]);
+    if (duplicateResults.length) {
+      console.log(`Page ${page}: ${duplicateResults.length} comment(s) were dropped because they were already tracked`);
+    }
+    const emptyResults = _.remove(newResults, (result) => !result.body);
+    if (emptyResults.length) {
+      console.log(`Page ${page}: ${emptyResults.length} comment(s) were dropped because they didn't have text`);
+    }
+    const beforeAddCount = results.length;
+    newResults.forEach(result => addResult(result));
+    const afterAddCount = results.length;
+    console.log(`Page ${page}: total comments increased by ${afterAddCount - beforeAddCount}, from ${beforeAddCount} to ${afterAddCount}`);
+  };
 
   let page = 1;
   let running = true;
 
+  console.log(`Started scraping ${url} for comments with a hard cap limit of ${hardCap}`);
+
   while (running) {
     const pageResults = await getPage(page);
-    addResults(pageResults);
+    addResults(page, pageResults);
+
+    const limitReached = results.length >= hardCap;
+    if (limitReached) {
+      console.log(`Page ${page}: Reached hard cap limit of ${hardCap} comment(s). Scraping stopped.`);
+      running = false;
+      break;
+    }
 
     const hasNextPage = await tab.evaluate(checkHasNextPage);
     if (!hasNextPage) {
+      console.log(`Page ${page}: Reached last page of comments. Scraping stopped.`);
       running = false;
       break;
     }
@@ -198,14 +224,10 @@ nick.newTab().then(async (tab) => {
     page += 1;
   }
 
-  console.log(results.length, 'comment(s) were successfully scraped');
+  console.log(`${results.length} comment(s) were extracted from a total of ${page} page(s)`);
   return results;
 })
 .then(async (results) => {
-  const emptyResults = _.remove(results, (result) => !result.body);
-  console.log(emptyResults.length, 'empty result(s) were filtered out');
-  console.log(results.length, 'result(s) being returned');
-
   const sortedResults = _.orderBy(results, ['timestamp'], ['desc']);
   await buster.setResultObject(sortedResults);
 })
