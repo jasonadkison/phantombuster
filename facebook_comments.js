@@ -3,6 +3,7 @@
 "phantombuster command: nodejs"
 "phantombuster package: 5"
 "phantombuster flags: save-folder"
+"phantombuster dependencies: lib-Mattr-Helper.js"
 
 const Buster = require("phantombuster");
 const buster = new Buster();
@@ -12,9 +13,13 @@ const nick = new Nick();
 
 const _ = require("lodash");
 
+const MattrHelper = require("./lib-Mattr-Helper");
+
 // }
 
 nick.newTab().then(async (tab) => {
+  const mattrHelper = new MattrHelper(buster, nick, tab);
+
   const { url, limit } = buster.argument;
   const hardCap = limit ? limit : 1000;
 
@@ -22,7 +27,7 @@ nick.newTab().then(async (tab) => {
   //const url = "https://www.facebook.com/DonaldTrump/videos/vb.153080620724/10159664271045725/?type=2&theater";
   //const url = "https://www.facebook.com/DonaldTrump/photos/a.10156483516640725/10161489089290725/?type=3&permPage=1"
 
-  await tab.open(url);
+  await mattrHelper.openTab(url);
   await tab.untilVisible('.userContentWrapper'); // Make sure we have loaded the right page
   await tab.inject("../injectables/jquery-3.0.0.min.js"); // We're going to use jQuery to scrape
 
