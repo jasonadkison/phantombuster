@@ -3,6 +3,7 @@
   "phantombuster command: nodejs"
   "phantombuster package: 5"
   "phantombuster flags: save-folder"
+  "phantombuster dependencies: lib-Mattr-Helper.js"
 
   const Buster = require("phantombuster")
   const buster = new Buster()
@@ -12,12 +13,16 @@
 
   const _ = require("lodash")
 
+  const MattrHelper = require('./lib-Mattr-Helper');
+
   // }
 
   nick.newTab().then(async (tab) => {
+    const mattrHelper = new MattrHelper(buster, nick, tab);
+
     const arg = buster.argument;
     const { id } = arg;
-    await tab.open(`https://www.instagram.com/p/${id}`);
+    await mattrHelper.openTab(`https://www.instagram.com/p/${id}`);
     await tab.untilVisible("#react-root");
     await tab.inject("../injectables/jquery-3.0.0.min.js");
     await tab.inject("../injectables/lodash-full-4.13.1.min.js");
@@ -110,13 +115,26 @@
   })
   .then((commentEdges) => {
     console.log('Performing data mapping...');
-    const data = _(_.map(commentEdges, 'node'))
+
+    // extract basic fields and sort results
+    const comments = _(_.map(commentEdges, 'node'))
                    .map(item => _.pick(item, ['id', 'text', 'created_at', 'owner']))
                    .sortBy(['created_at'])
                    .reverse()
                    .value();
+
+    // normalize flat objects
+    const results = _.map(comments, comment => ({
+      id: _.get(comment, 'id', null),
+      createdAt: _.get(comment, 'created_at', null),
+      text: _.get(comment, 'text', null),
+      userId: _.get(comment, 'owner.id', null),
+      userAvatar: _.get(comment, 'owner.profile_pic_url', null),
+      username: _.get(comment, 'owner.username', null),
+    }));
+
     console.log('Data mapping complete!');
-    return data;
+    return results;
   })
   .then(async (data) => {
     console.log('Saving data to file');
@@ -138,6 +156,7 @@
     return result;
   })
   .then(async (result) => {
+    console.log('Setting result object', result);
     /*{
     "url": "https://phantombuster.s3.amazonaws.com/Br7nF5sLuTc/c8wATtZQxsP1mE3zLvdfSQ/comments/Bl6h-pRB1MX.json",
     "id": "Bl6h-pRB1MX",
