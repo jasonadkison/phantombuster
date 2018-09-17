@@ -3,21 +3,25 @@
 "phantombuster command: nodejs"
 "phantombuster package: 5"
 "phantombuster flags: save-folder"
+"phantombuster dependencies: lib-Mattr-Helper.js"
 
 const Buster = require("phantombuster")
 const buster = new Buster()
 
 const Nick = require("nickjs")
 const nick = new Nick()
+const MattrHelper = require('./lib-Mattr-Helper');
 
 // }
 
 nick.newTab().then(async (tab) => {
+  const mattrHelper = new MattrHelper(buster, nick, tab);
+
   if (!buster.argument.url) {
     throw new Error('Missing url argument to agent');
   }
 
-  await tab.open(buster.argument.url);
+  await mattrHelper.openTab(buster.argument.url);
   await tab.untilVisible('div[role="main"]'); // Make sure we have loaded the right page
   await tab.inject("../injectables/jquery-3.0.0.min.js"); // We're going to use jQuery to scrape
 
