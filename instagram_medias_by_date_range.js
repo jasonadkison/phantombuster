@@ -173,7 +173,7 @@ nick.newTab().then(async (tab) => {
       imageUrl: _.get(mediaEdge, 'display_url', null),
       videoUrl: _.get(mediaEdge, 'video_url', null),
       createdAtTime: _.get(mediaEdge, 'taken_at_timestamp', null),
-      owner,
+      //owner,
       isSponsored: Sponsored.isSponsoredMedia(mediaEdge),
     };
     medias.push(mediaData);
