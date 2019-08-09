@@ -90,6 +90,7 @@ nick.newTab().then(async (tab) => {
         headers: {
           'x-instagram-gis': gisHeader,
           //'x-requested-with': 'XMLHttpRequest',
+          'x-csrftoken': md5((new Date()).getTime()),
         },
         xhrFields: { withCredentials: true },
       });
