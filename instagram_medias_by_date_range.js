@@ -27,8 +27,11 @@ nick.newTab().then(async (tab) => {
   await tab.untilVisible("#react-root"); // Make sure we have loaded the page
   await tab.inject("../injectables/jquery-3.0.0.min.js"); // We're going to use jQuery to scrape
   await tab.inject("../injectables/lodash-full-4.13.1.min.js"); // We're going to use lodash to extract certain data from graphql structure
+
   return await tab.evaluate((arg, callback) => {
     // In the current page context
+
+    // const arg = { handle: "elmabeganovich", start: 1541430782, end: 1549379582 };
 
     const { handle, start, end } = arg;
 
@@ -174,7 +177,6 @@ nick.newTab().then(async (tab) => {
       imageUrl: _.get(mediaEdge, 'display_url', null),
       videoUrl: _.get(mediaEdge, 'video_url', null),
       createdAtTime: _.get(mediaEdge, 'taken_at_timestamp', null),
-      //owner,
       isSponsored: Sponsored.isSponsoredMedia(mediaEdge),
     };
     medias.push(mediaData);
