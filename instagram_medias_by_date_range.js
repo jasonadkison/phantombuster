@@ -183,7 +183,7 @@ nick.newTab().then(async (tab) => {
   });
 
   console.log('Data mapping complete!');
-  await buster.setResultObject(medias);
+  await buster.setResultObject(medias.slice(0, 50));
 })
 .then(() => {
   console.log("Job done!");
