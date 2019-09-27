@@ -39,11 +39,17 @@
       const csrfToken = getCookie('csrftoken');
 
       function extractCommentEdges(data) {
-        return _.get(data, 'shortcode_media.edge_media_to_comment.edges', [])
+        const edges = [];
+        _.get(data, 'shortcode_media.edge_media_to_comment.edges', []).map(edge => edges.push(edge));
+        _.get(data, 'shortcode_media.edge_media_to_parent_comment.edges', []).map(edge => edges.push(edge));
+        return edges;
       }
 
       function extractPageInfo(data) {
-        return _.get(data, 'shortcode_media.edge_media_to_comment.page_info', {})
+        const option1 = _.get(data, 'shortcode_media.edge_media_to_comment.page_info', {});
+        if (option1.end_cursor) return option1;
+
+        return _.get(data, 'shortcode_media.edge_media_to_parent_comment.page_info', {});
       }
 
       const results = [];
